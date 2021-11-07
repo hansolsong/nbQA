@@ -219,6 +219,7 @@ def _get_mtimes(arg: str) -> Set[float]:
 
 
 def _run_command(
+    is_external: bool,
     command: str,
     cmd_args: Sequence[str],
     args: Sequence[str],
@@ -228,6 +229,8 @@ def _run_command(
 
     Parameters
     ----------
+    is_external
+        Whether command is an external tool or a package inside the python environment
     command
         Third-party tool (e.g. :code:`mypy`) to run against notebook.
     cmd_args
@@ -255,8 +258,12 @@ def _run_command(
     if command == "mypy" and "MYPY_FORCE_COLOR" not in my_env:
         my_env["MYPY_FORCE_COLOR"] = "1"
 
+    command_with_args = [command, *args, *cmd_args]
+
     output = subprocess.run(
-        [sys.executable, "-m", command, *args, *cmd_args],
+        command_with_args
+        if is_external
+        else [sys.executable, "-m"] + command_with_args,
         stderr=subprocess.PIPE,
         stdout=subprocess.PIPE,
         universal_newlines=True,  # from Python3.7 this can be replaced with `text`
@@ -566,6 +573,7 @@ def _main(cli_args: CLIArgs, configs: Configs) -> int:
             return 123
 
         output, output_code, mutated = _run_command(
+            cli_args.is_external,
             cli_args.command,
             configs["addopts"],
             [
@@ -655,7 +663,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         :code:`None` if calling via command-line.
     """
     cli_args: CLIArgs = CLIArgs.parse_args(argv)
-    _check_command_is_installed(cli_args.command)
+    if not cli_args.is_external:
+        _check_command_is_installed(cli_args.command)
     project_root: Path = find_project_root(tuple(cli_args.root_dirs))
     configs: Configs = _get_configs(cli_args, project_root)
 
