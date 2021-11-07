@@ -1,0 +1,12 @@
+image:
+  file: .gitpod.Dockerfile
+
+tasks:
+  - init: pip install -r requirements-dev.txt && pre-commit install && pip install -e .
+
+vscode:
+  extensions:
+    - ms-toolsai.jupyter
+    - ms-python.python
+    - eamodio.gitlens
+    - mhutchie.git-graph
