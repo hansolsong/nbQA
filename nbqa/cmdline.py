@@ -49,6 +49,7 @@ class CLIArgs:  # pylint: disable=R0902
     files: Optional[str]
     exclude: Optional[str]
     dont_skip_bad_cells: Optional[bool]
+    is_external: bool
 
     def __init__(self, args: argparse.Namespace, cmd_args: Sequence[str]) -> None:
         """
@@ -81,6 +82,7 @@ class CLIArgs:  # pylint: disable=R0902
             self.skip_celltags = args.nbqa_skip_celltags.split(",")
         else:
             self.skip_celltags = None
+        self.is_external = args.nbqa_is_external or False
 
     @staticmethod
     def parse_args(argv: Optional[Sequence[str]]) -> "CLIArgs":
@@ -142,6 +144,17 @@ class CLIArgs:  # pylint: disable=R0902
             help=dedent(
                 r"""
                 Skip cells with have any of the given celltags.
+                """
+            ),
+        )
+        parser.add_argument(
+            "--nbqa-is-external",
+            action="store_true",
+            required=False,
+            help=dedent(
+                r"""
+                Execute as an external command.
+                Defaults to false when running against python cells, otherwise true.
                 """
             ),
         )
